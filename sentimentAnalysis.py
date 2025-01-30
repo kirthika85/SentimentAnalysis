@@ -6,9 +6,11 @@ from nltk.sentiment import SentimentIntensityAnalyzer
 import pandas as pd
 import matplotlib.pyplot as plt
 
+
 # Download NLTK data
 nltk.download('vader_lexicon', quiet=True)
 nltk.download('punkt', quiet=True)
+nltk.download('wordnet', download_dir='/path/to/writable/directory')
 
 # Function to scrape transcript
 def scrape_transcript(url):
