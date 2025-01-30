@@ -54,6 +54,10 @@ if url:
         if not transcript:
             st.error("Unable to extract transcript from the provided URL. Please check the URL and try again.")
         else:
+            
+            st.subheader("Debug: Full Scraped Content")
+            st.text_area("Full content:", transcript, height=300)
+            
             # Display a sample of the scraped text
             st.subheader("Sample of Scraped Text")
             st.write(transcript[:500] + "...")  # Display first 500 characters
