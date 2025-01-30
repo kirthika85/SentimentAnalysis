@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 # Download NLTK data
 nltk.download('vader_lexicon', quiet=True)
 nltk.download('punkt', quiet=True)
-nltk.download('wordnet', download_dir='/path/to/writable/directory')
+nltk.download('wordnet', quiet=True)
 
 # Function to scrape transcript
 def scrape_transcript(url):
