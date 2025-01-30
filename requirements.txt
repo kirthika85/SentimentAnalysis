@@ -1,6 +1,6 @@
 streamlit
 requests
 beautifulsoup4
-nltk==3.9.0
+nltk==3.8.1
 pandas
 matplotlib
