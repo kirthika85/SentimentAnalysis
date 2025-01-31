@@ -13,13 +13,33 @@ nltk.download('vader_lexicon', quiet=True)
 nltk.download('punkt', quiet=True)
 nltk.download('wordnet', quiet=True)
 
-# Function to scrape transcript (unchanged)
+# Function to scrape transcript
 def scrape_transcript(url):
-    # ... (your existing scrape_transcript function)
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    
+    # Look for common transcript container classes
+    transcript_containers = soup.find_all(['div', 'section'], class_=['transcript-text', 'article-text', 'transcript-container'])
+    
+    if not transcript_containers:
+        # If no specific container found, try to get all paragraphs
+        transcript_containers = soup.find_all('p')
+    
+    transcript = ' '.join([container.get_text(strip=True) for container in transcript_containers])
+    
+    # Remove any video player text or irrelevant content
+    irrelevant_phrases = ['Video Player', 'Loading Video', 'Transcript', 'Q&A Session']
+    for phrase in irrelevant_phrases:
+        transcript = transcript.replace(phrase, '')
+    
+    return transcript.strip()
 
-# Function to perform sentiment analysis (unchanged)
+# Function to perform sentiment analysis
 def analyze_sentiment(text):
-    # ... (your existing analyze_sentiment function)
+    sia = SentimentIntensityAnalyzer()
+    sentences = nltk.sent_tokenize(text)
+    sentiments = [sia.polarity_scores(sentence) for sentence in sentences]
+    return sentiments
 
 # Function to get stock performance
 def get_stock_performance(ticker, days_before=30, days_after=30):
