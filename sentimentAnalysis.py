@@ -167,6 +167,7 @@ if st.button("View Company Dashboard"):
         earnings_data = get_earnings_data(ticker, api_key)
         if isinstance(earnings_data, dict):
             st.write("Earnings Data:")
+            print(earnings_data)  # Print earnings data for inspection
             if 'annualEarnings' in earnings_data:
                 for year, data in earnings_data['annualEarnings'].items():
                     st.write(f"Year: {year}, EPS: {data.get('fiscalEps', 'N/A')}")
