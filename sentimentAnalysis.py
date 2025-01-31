@@ -6,6 +6,8 @@ from nltk.sentiment import SentimentIntensityAnalyzer
 import pandas as pd
 import matplotlib.pyplot as plt
 import yfinance as yf
+import numpy as np
+from scipy.stats import pearsonr
 from datetime import datetime, timedelta
 
 # Download NLTK data
@@ -84,6 +86,25 @@ def get_earnings_data(ticker, api_key):
     except Exception as e:
         return f"An error occurred: {e}"
 
+def calculate_correlation(sentiment_score, stock_performance, earnings_call_date):
+    call_date = pd.to_datetime(earnings_call_date)
+    
+    before_call = stock_performance.loc[:call_date]
+    after_call = stock_performance.loc[call_date:]
+    
+    avg_price_before = before_call['Close'].mean()
+    avg_price_after = after_call['Close'].mean()
+    avg_volume_before = before_call['Volume'].mean()
+    avg_volume_after = after_call['Volume'].mean()
+    
+    price_change = (avg_price_after - avg_price_before) / avg_price_before
+    volume_change = (avg_volume_after - avg_volume_before) / avg_volume_before
+    
+    price_correlation, _ = pearsonr([sentiment_score], [price_change])
+    volume_correlation, _ = pearsonr([sentiment_score], [volume_change])
+    
+    return price_correlation, volume_correlation, price_change, volume_change
+
 # Streamlit app
 st.title("Earnings Call Sentiment Analysis")
 LOGO_URL="Tesla-Logo.png"
@@ -156,7 +177,8 @@ if st.button("Sentiment Validation"):
         
         st.subheader("Most Negative Sentences")
         st.table(df_sentiments.nsmallest(5, 'compound')[['sentence', 'compound']])
-        
+
+             
         # Display dashboard
         st.subheader("Company Dashboard")
         
@@ -184,3 +206,33 @@ if st.button("Sentiment Validation"):
         
         # Display sentiment analysis
         st.write(f"Overall Sentiment: {overall_sentiment['compound']:.2f}")
+
+        # Calculate correlation
+        earnings_call_date = "2024-01-24"  # Replace with actual earnings call date
+        price_correlation, volume_correlation, price_change, volume_change = calculate_correlation(
+            overall_sentiment['compound'], 
+            stock_performance, 
+            earnings_call_date
+        )
+
+        st.subheader("Correlation Analysis")
+        st.write(f"Correlation between sentiment and stock price change: {price_correlation:.2f}")
+        st.write(f"Correlation between sentiment and volume change: {volume_correlation:.2f}")
+        st.write(f"Stock price change: {price_change:.2%}")
+        st.write(f"Trading volume change: {volume_change:.2%}")
+
+        # Visualize correlation
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+        ax1.scatter([overall_sentiment['compound']], [price_change])
+        ax1.set_xlabel("Sentiment Score")
+        ax1.set_ylabel("Stock Price Change")
+        ax1.set_title("Sentiment vs Stock Price Change")
+
+        ax2.scatter([overall_sentiment['compound']], [volume_change])
+        ax2.set_xlabel("Sentiment Score")
+        ax2.set_ylabel("Volume Change")
+        ax2.set_title("Sentiment vs Volume Change")
+
+        st.pyplot(fig)
+
+        
