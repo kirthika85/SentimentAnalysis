@@ -167,9 +167,14 @@ if st.button("View Company Dashboard"):
         earnings_data = get_earnings_data(ticker, api_key)
         if isinstance(earnings_data, dict):
             st.write("Earnings Data:")
+            print(earnings_data)  # Print earnings data for inspection
+            
             if 'annualEarnings' in earnings_data:
-                for data in earnings_data['annualEarnings']:
-                    st.write(f"Earnings Data: {data}")
+                # Convert earnings data to DataFrame
+                earnings_df = pd.DataFrame(earnings_data['annualEarnings'])
+                
+                # Display earnings data in a table
+                st.table(earnings_df)
             else:
                 st.write("Failed to retrieve specific earnings data.")
         else:
