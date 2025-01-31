@@ -66,18 +66,15 @@ def validate_sentiment(sentiment_score, stock_performance):
     return stock_discrepancy, volume_discrepancy
 
 def get_earnings_data(ticker, api_key):
-    api_url = f"https://financialmodelingprep.com/api/v3/historical/earning_calendar/{ticker}"
-    params = {
-        "apikey": api_key
-    }
+    api_url = f"https://www.alphavantage.co/query?function=EARNINGS&symbol={ticker}&apikey={api_key}"
     
     try:
-        response = requests.get(api_url, params=params)
+        response = requests.get(api_url)
         response.raise_for_status()  # Raise an exception for bad status codes
         earnings_data = response.json()
         return earnings_data
     except requests.exceptions.HTTPError as errh:
-        return f"HTTP Error occurred: {errh}"
+        return f"HTTP Error occurred: {errh}. Check your API key and endpoint."
     except requests.exceptions.ConnectionError as errc:
         return f"Error connecting: {errc}"
     except requests.exceptions.Timeout as errt:
@@ -102,7 +99,7 @@ with col1:
         # Predefined values
         url = "https://wallstreetwaves.com/tesla-tsla-q4-2024-earnings-call-highlights-and-insights/"
         ticker = "TSLA"
-        api_key="0b7ddfd1d5msh644b6045b584129p1455edjsn2c8bbec1be38"
+        api_key="2K9GC7BCAV2V7RX8"
         
         # Scrape transcript
         transcript = scrape_transcript(url)
@@ -170,14 +167,17 @@ with col1:
             st.subheader("Company Dashboard")
             
             # Display earnings
-            earnings_data = get_earnings_data(ticker, api_key)
-            if isinstance(earnings_data, list):
+            earnings_data = get_earnings_data_alpha_vantage(ticker, api_key)
+            if isinstance(earnings_data, dict):
                 st.write("Earnings Data:")
-                for earnings in earnings_data:
-                    st.write(f"EPS: {earnings.get('eps', 'N/A')}, Date: {earnings.get('date', 'N/A')}")
+                if 'annualEarnings' in earnings_data:
+                    for year, data in earnings_data['annualEarnings'].items():
+                        st.write(f"Year: {year}, EPS: {data['fiscalEps']}")
+                else:
+                    st.write("Failed to retrieve specific earnings data.")
             else:
                 st.write(earnings_data)
-            
+                
             # Display stock price
             stock_data = yf.Ticker(ticker).info
             stock_price = stock_data['currentPrice']
