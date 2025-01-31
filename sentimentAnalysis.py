@@ -89,9 +89,6 @@ st.title("Earnings Call Sentiment Analysis")
 LOGO_URL="Tesla-Logo.png"
 st.image(LOGO_URL, width=200)
 
-# Display the logo and dashboard
-st.markdown("<h2 style='color: green;'>Company Logo and Dashboard</h2>", unsafe_allow_html=True)
-
 if st.button("View Company Dashboard"):
     # Predefined values
     url = "https://wallstreetwaves.com/tesla-tsla-q4-2024-earnings-call-highlights-and-insights/"
