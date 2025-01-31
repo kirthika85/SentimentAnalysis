@@ -89,7 +89,7 @@ st.title("Earnings Call Sentiment Analysis")
 LOGO_URL="Tesla-Logo.png"
 st.image(LOGO_URL, width=200)
 
-if st.button("View Company Dashboard"):
+if st.button("Sentiment Validation"):
     # Predefined values
     url = "https://wallstreetwaves.com/tesla-tsla-q4-2024-earnings-call-highlights-and-insights/"
     ticker = "TSLA"
