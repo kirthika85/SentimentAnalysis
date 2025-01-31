@@ -167,7 +167,6 @@ if st.button("View Company Dashboard"):
         earnings_data = get_earnings_data(ticker, api_key)
         if isinstance(earnings_data, dict):
             st.write("Earnings Data:")
-            st.write (earnings_data)
             if 'annualEarnings' in earnings_data:
                 for data in earnings_data['annualEarnings']:
                     st.write(f"Earnings Data: {data}")
