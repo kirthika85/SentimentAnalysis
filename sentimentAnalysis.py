@@ -46,16 +46,24 @@ def get_stock_performance(ticker, days_before=30, days_after=30):
     end_date = datetime.now()
     start_date = end_date - timedelta(days=days_before + days_after)
     stock_data = yf.Ticker(ticker).history(start=start_date, end=end_date)
-    return stock_data['Close']
+    return stock_data
 
 # Function to validate sentiment against stock performance
 def validate_sentiment(sentiment_score, stock_performance):
-    stock_change = (stock_performance.iloc[-1] - stock_performance.iloc[0]) / stock_performance.iloc[0]
+    stock_change = (stock_performance['Close'].iloc[-1] - stock_performance['Close'].iloc[0]) / stock_performance['Close'].iloc[0]
+    volume_change = (stock_performance['Volume'].iloc[-1] - stock_performance['Volume'].iloc[0]) / stock_performance['Volume'].iloc[0]
     
     if (sentiment_score > 0.2 and stock_change < -0.05) or (sentiment_score < -0.2 and stock_change > 0.05):
-        return "Potential discrepancy detected between sentiment and stock performance."
+        stock_discrepancy = "Potential discrepancy detected between sentiment and stock price."
     else:
-        return "Sentiment aligns with stock performance."
+        stock_discrepancy = "Sentiment aligns with stock price."
+        
+    if (sentiment_score > 0.2 and volume_change < 0) or (sentiment_score < -0.2 and volume_change > 0):
+        volume_discrepancy = "Potential discrepancy detected between sentiment and trading volume."
+    else:
+        volume_discrepancy = "Sentiment aligns with trading volume."
+    
+    return stock_discrepancy, volume_discrepancy
 
 def get_earnings_data(ticker, api_key):
     api_url = f"https://financialmodelingprep.com/api/v3/historical/earning_calendar/{ticker}"
@@ -83,7 +91,6 @@ def get_earnings_data(ticker, api_key):
 st.title("Earnings Call Sentiment Analysis")
 LOGO_URL="Tesla-Logo.png"
 st.image(LOGO_URL, width=200)
-
 
 # Display the logo as a button
 col1, col2 = st.columns([2, 1])
@@ -124,23 +131,28 @@ with col1:
             stock_performance = get_stock_performance(ticker)
             
             # Validate sentiment
-            validation_result = validate_sentiment(overall_sentiment['compound'], stock_performance)
+            stock_discrepancy, volume_discrepancy = validate_sentiment(overall_sentiment['compound'], stock_performance)
             
             st.subheader("Sentiment Validation")
-            st.write(validation_result)
+            st.write(f"Stock Price: {stock_discrepancy}")
+            st.write(f"Trading Volume: {volume_discrepancy}")
             
-            # Visualize sentiment and stock performance
-            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
-            
+            # Visualize sentiment, stock price, and trading volume
+            fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 15))
             ax1.hist([s['compound'] for s in sentiments], bins=20)
             ax1.set_xlabel("Sentiment Score")
             ax1.set_ylabel("Frequency")
             ax1.set_title("Distribution of Sentiment Scores")
             
-            ax2.plot(stock_performance.index, stock_performance.values)
+            ax2.plot(stock_performance.index, stock_performance['Close'].values)
             ax2.set_xlabel("Date")
             ax2.set_ylabel("Stock Price")
-            ax2.set_title(f"{ticker} Stock Performance")
+            ax2.set_title(f"{ticker} Stock Price")
+            
+            ax3.plot(stock_performance.index, stock_performance['Volume'].values)
+            ax3.set_xlabel("Date")
+            ax3.set_ylabel("Trading Volume")
+            ax3.set_title(f"{ticker} Trading Volume")
             
             st.pyplot(fig)
             
@@ -176,6 +188,4 @@ with col1:
     
 with col2:
     # Sidebar content here
-    st.write("")
-    st.markdown("<h2 style='color: green;'>About</h2>", unsafe_allow_html=True)
-    st.write("This app analyzes earnings call transcripts to provide sentiment analysis and validate it against stock performance.")
+    st.write
