@@ -135,7 +135,7 @@ with col1:
             st.subheader("Company Dashboard")
             
             # Display earnings
-            earnings = "Insert earnings data here"
+            #earnings = "Insert earnings data here"
             st.write(f"Earnings: {earnings}")
             
             # Display stock price
