@@ -5,48 +5,46 @@ import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import yfinance as yf
+from datetime import datetime, timedelta
 
 # Download NLTK data
 nltk.download('vader_lexicon', quiet=True)
 nltk.download('punkt', quiet=True)
 nltk.download('wordnet', quiet=True)
 
-# Function to scrape transcript
+# Function to scrape transcript (unchanged)
 def scrape_transcript(url):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    
-    # Look for common transcript container classes
-    transcript_containers = soup.find_all(['div', 'section'], class_=['transcript-text', 'article-text', 'transcript-container'])
-    
-    if not transcript_containers:
-        # If no specific container found, try to get all paragraphs
-        transcript_containers = soup.find_all('p')
-    
-    transcript = ' '.join([container.get_text(strip=True) for container in transcript_containers])
-    
-    # Remove any video player text or irrelevant content
-    irrelevant_phrases = ['Video Player', 'Loading Video', 'Transcript', 'Q&A Session']
-    for phrase in irrelevant_phrases:
-        transcript = transcript.replace(phrase, '')
-    
-    return transcript.strip()
+    # ... (your existing scrape_transcript function)
 
-# Function to perform sentiment analysis
+# Function to perform sentiment analysis (unchanged)
 def analyze_sentiment(text):
-    sia = SentimentIntensityAnalyzer()
-    sentences = nltk.sent_tokenize(text)
-    sentiments = [sia.polarity_scores(sentence) for sentence in sentences]
-    return sentiments
+    # ... (your existing analyze_sentiment function)
+
+# Function to get stock performance
+def get_stock_performance(ticker, days_before=30, days_after=30):
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=days_before + days_after)
+    stock_data = yf.Ticker(ticker).history(start=start_date, end=end_date)
+    return stock_data['Close']
+
+# Function to validate sentiment against stock performance
+def validate_sentiment(sentiment_score, stock_performance):
+    stock_change = (stock_performance.iloc[-1] - stock_performance.iloc[0]) / stock_performance.iloc[0]
+    
+    if (sentiment_score > 0.2 and stock_change < -0.05) or (sentiment_score < -0.2 and stock_change > 0.05):
+        return "Potential discrepancy detected between sentiment and stock performance."
+    else:
+        return "Sentiment aligns with stock performance."
 
 # Streamlit app
-st.title("Earnings Call Sentiment Analysis")
+st.title("Earnings Call Sentiment Analysis and Validation")
 
 # User input
 url = st.text_input("Enter the URL of the earnings call transcript:")
+ticker = st.text_input("Enter the stock ticker symbol:")
 
-if url:
+if url and ticker:
     try:
         # Scrape transcript
         transcript = scrape_transcript(url)
@@ -54,10 +52,6 @@ if url:
         if not transcript:
             st.error("Unable to extract transcript from the provided URL. Please check the URL and try again.")
         else:
-            
-            st.subheader("Debug: Full Scraped Content")
-            st.text_area("Full content:", transcript, height=300)
-            
             # Display a sample of the scraped text
             st.subheader("Sample of Scraped Text")
             st.write(transcript[:500] + "...")  # Display first 500 characters
@@ -75,12 +69,28 @@ if url:
             st.write(f"Negative: {overall_sentiment['neg']:.2f}")
             st.write(f"Compound: {overall_sentiment['compound']:.2f}")
             
-            # Visualize sentiment distribution
-            fig, ax = plt.subplots()
-            ax.hist([s['compound'] for s in sentiments], bins=20)
-            ax.set_xlabel("Sentiment Score")
-            ax.set_ylabel("Frequency")
-            ax.set_title("Distribution of Sentiment Scores")
+            # Get stock performance
+            stock_performance = get_stock_performance(ticker)
+            
+            # Validate sentiment
+            validation_result = validate_sentiment(overall_sentiment['compound'], stock_performance)
+            
+            st.subheader("Sentiment Validation")
+            st.write(validation_result)
+            
+            # Visualize sentiment and stock performance
+            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
+            
+            ax1.hist([s['compound'] for s in sentiments], bins=20)
+            ax1.set_xlabel("Sentiment Score")
+            ax1.set_ylabel("Frequency")
+            ax1.set_title("Distribution of Sentiment Scores")
+            
+            ax2.plot(stock_performance.index, stock_performance.values)
+            ax2.set_xlabel("Date")
+            ax2.set_ylabel("Stock Price")
+            ax2.set_title(f"{ticker} Stock Performance")
+            
             st.pyplot(fig)
             
             # Display most positive and negative sentences
