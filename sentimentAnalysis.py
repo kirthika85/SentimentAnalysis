@@ -169,8 +169,8 @@ if st.button("View Company Dashboard"):
             st.write("Earnings Data:")
             st.write (earnings_data)
             if 'annualEarnings' in earnings_data:
-                for year, data in earnings_data['annualEarnings']:
-                    st.write(f"Year: {data.get('fiscalYear', 'N/A')}, EPS: {data.get('EPS', 'N/A')}")
+                for data in earnings_data['annualEarnings']:
+                    st.write(f"Earnings Data: {data}")
             else:
                 st.write("Failed to retrieve specific earnings data.")
         else:
