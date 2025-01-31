@@ -58,14 +58,25 @@ def validate_sentiment(sentiment_score, stock_performance):
         return "Sentiment aligns with stock performance."
 
 # Streamlit app
-st.title("Earnings Call Sentiment Analysis and Validation")
+st.set_page_config(
+    page_title="Earnings Call Sentiment Analysis",
+    page_icon="Tesla-Logo.png",
+    layout="wide"
+)
 
-# User input
-url = st.text_input("Enter the URL of the earnings call transcript:")
-ticker = st.text_input("Enter the stock ticker symbol:")
+st.markdown("<h1 style='text-align: center; color: blue;'>Earnings Call Sentiment Analysis</h1>", unsafe_allow_html=True)
 
-if url and ticker:
-    try:
+# Display the logo as a button
+col1, col2 = st.columns([2, 1])
+with col1:
+    st.write("")
+    st.markdown("<h2 style='color: green;'>Company Logo and Dashboard</h2>", unsafe_allow_html=True)
+    
+    if st.button("View Company Dashboard"):
+        # Predefined values
+        url = "https://wallstreetwaves.com/tesla-tsla-q4-2024-earnings-call-highlights-and-insights/"
+        ticker = "TSLA"
+        
         # Scrape transcript
         transcript = scrape_transcript(url)
         
@@ -122,6 +133,109 @@ if url and ticker:
             
             st.subheader("Most Negative Sentences")
             st.table(df_sentiments.nsmallest(5, 'compound')[['sentence', 'compound']])
+            
+            # Display dashboard
+            st.subheader("Company Dashboard")
+            
+            # Display earnings
+            earnings = "Insert earnings data here"
+            st.write(f"Earnings: {earnings}")
+            
+            # Display stock price
+            stock_data = yf.Ticker(ticker).info
+            stock_price = stock_data['currentPrice']
+            st.write(f"Stock Price: {stock_price}")
+            
+            # Display sentiment analysis
+            st.write(f"Overall Sentiment: {overall_sentiment['compound']:.2f}")
     
-    except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
+    else:
+        # User input section
+        st.write("")
+        st.markdown("<h2 style='color: green;'>User Input</h2>", unsafe_allow_html=True)
+        
+        url = st.text_input("Enter the URL of the earnings call transcript:")
+        ticker = st.text_input("Enter the stock ticker symbol:")
+        
+        if url and ticker:
+            try:
+                # Scrape transcript
+                transcript = scrape_transcript(url)
+                
+                if not transcript:
+                    st.error("Unable to extract transcript from the provided URL. Please check the URL and try again.")
+                else:
+                    # Display a sample of the scraped text
+                    st.subheader("Sample of Scraped Text")
+                    st.write(transcript[:500] + "...")  # Display first 500 characters
+                    
+                    # Perform sentiment analysis
+                    sentiments = analyze_sentiment(transcript)
+                    
+                    # Calculate overall sentiment
+                    overall_sentiment = pd.DataFrame(sentiments).mean()
+                    
+                    # Display results
+                    st.subheader("Overall Sentiment")
+                    st.write(f"Positive: {overall_sentiment['pos']:.2f}")
+                    st.write(f"Neutral: {overall_sentiment['neu']:.2f}")
+                    st.write(f"Negative: {overall_sentiment['neg']:.2f}")
+                    st.write(f"Compound: {overall_sentiment['compound']:.2f}")
+                    
+                    # Get stock performance
+                    stock_performance = get_stock_performance(ticker)
+                    
+                    # Validate sentiment
+                    validation_result = validate_sentiment(overall_sentiment['compound'], stock_performance)
+                    
+                    st.subheader("Sentiment Validation")
+                    st.write(validation_result)
+                    
+                    # Visualize sentiment and stock performance
+                    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
+                    
+                    ax1.hist([s['compound'] for s in sentiments], bins=20)
+                    ax1.set_xlabel("Sentiment Score")
+                    ax1.set_ylabel("Frequency")
+                    ax1.set_title("Distribution of Sentiment Scores")
+                    
+                    ax2.plot(stock_performance.index, stock_performance.values)
+                    ax2.set_xlabel("Date")
+                    ax2.set_ylabel("Stock Price")
+                    ax2.set_title(f"{ticker} Stock Performance")
+                    
+                    st.pyplot(fig)
+                    
+                    # Display most positive and negative sentences
+                    df_sentiments = pd.DataFrame(sentiments)
+                    df_sentiments['sentence'] = nltk.sent_tokenize(transcript)
+                    
+                    st.subheader("Most Positive Sentences")
+                    st.table(df_sentiments.nlargest(5, 'compound')[['sentence', 'compound']])
+                    
+                    st.subheader("Most Negative Sentences")
+                    st.table(df_sentiments.nsmallest(5, 'compound')[['sentence', 'compound']])
+                    
+                    # Display dashboard
+                    st.subheader("Company Dashboard")
+                    
+                    # Display earnings
+                    earnings = "Insert earnings data here"
+                    st.write(f"Earnings: {earnings}")
+                    
+                    # Display stock price
+                    stock_data = yf.Ticker(ticker).info
+                    stock_price = stock_data['currentPrice']
+                    st.write(f"Stock Price: {stock_price}")
+                    
+                    # Display sentiment analysis
+                    st.write(f"Overall Sentiment: {overall_sentiment['compound']:.2f}")
+            
+            except Exception as e:
+                st.error(f"An error occurred: {str(e)}")
+
+with col2:
+    # Sidebar content here
+    st.write("")
+    st.markdown("<h2 style='color: green;'>About</h2>", unsafe_allow_html=True)
+    st.write("This app analyzes earnings call transcripts to provide sentiment analysis and validate it against stock performance.")
