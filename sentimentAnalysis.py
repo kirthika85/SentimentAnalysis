@@ -58,13 +58,10 @@ def validate_sentiment(sentiment_score, stock_performance):
         return "Sentiment aligns with stock performance."
 
 # Streamlit app
-st.set_page_config(
-    page_title="Earnings Call Sentiment Analysis",
-    page_icon="Tesla-Logo.png",
-    layout="wide"
-)
+st.title("Earnings Call Sentiment Analysis")
+LOGO_URL="Tesla-Logo.png"
+st.image(LOGO_URL, width=200)
 
-st.markdown("<h1 style='text-align: center; color: blue;'>Earnings Call Sentiment Analysis</h1>", unsafe_allow_html=True)
 
 # Display the logo as a button
 col1, col2 = st.columns([2, 1])
