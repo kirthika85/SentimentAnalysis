@@ -58,24 +58,26 @@ def validate_sentiment(sentiment_score, stock_performance):
         return "Sentiment aligns with stock performance."
 
 def get_earnings_data(ticker, api_key):
-    api_url = f"https://seeking-alpha.p.rapidapi.com/symbols/get-estimates"
-    headers = {
-        'x-rapidapi-host': "seeking-alpha.p.rapidapi.com",
-        'x-rapidapi-key': api_key
-    }
+    api_url = f"https://financialmodelingprep.com/api/v3/historical/earning_calendar/{ticker}"
     params = {
-        "symbol": ticker,
-        "data_type": "eps",
-        "period_type": "quarterly"
+        "apikey": api_key
     }
     
-    response = requests.get(api_url, headers=headers, params=params)
-    
-    if response.status_code == 200:
+    try:
+        response = requests.get(api_url, params=params)
+        response.raise_for_status()  # Raise an exception for bad status codes
         earnings_data = response.json()
         return earnings_data
-    else:
-        return "Failed to retrieve earnings data."
+    except requests.exceptions.HTTPError as errh:
+        return f"HTTP Error occurred: {errh}"
+    except requests.exceptions.ConnectionError as errc:
+        return f"Error connecting: {errc}"
+    except requests.exceptions.Timeout as errt:
+        return f"Timeout Error occurred: {errt}"
+    except requests.exceptions.RequestException as err:
+        return f"Something went wrong: {err}"
+    except Exception as e:
+        return f"An error occurred: {e}"
 
 # Streamlit app
 st.title("Earnings Call Sentiment Analysis")
@@ -157,15 +159,10 @@ with col1:
             
             # Display earnings
             earnings_data = get_earnings_data(ticker, api_key)
-            if isinstance(earnings_data, dict):
-                st.write("Earnings Estimates:")
-                # Extract relevant earnings data from the API response
-                # This will depend on the structure of the API response
-                # For example:
-                if 'eps' in earnings_data:
-                    st.write(f"EPS Estimate: {earnings_data['eps']}")
-                else:
-                    st.write("Failed to retrieve specific earnings data.")
+            if isinstance(earnings_data, list):
+                st.write("Earnings Data:")
+                for earnings in earnings_data:
+                    st.write(f"EPS: {earnings.get('eps', 'N/A')}, Date: {earnings.get('date', 'N/A')}")
             else:
                 st.write(earnings_data)
             
