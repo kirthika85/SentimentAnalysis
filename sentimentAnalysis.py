@@ -156,8 +156,18 @@ with col1:
             st.subheader("Company Dashboard")
             
             # Display earnings
-            earnings = "Insert earnings data here"
-            st.write(f"Earnings: {earnings}")
+            earnings_data = get_earnings_data(ticker, api_key)
+            if isinstance(earnings_data, dict):
+                st.write("Earnings Estimates:")
+                # Extract relevant earnings data from the API response
+                # This will depend on the structure of the API response
+                # For example:
+                if 'eps' in earnings_data:
+                    st.write(f"EPS Estimate: {earnings_data['eps']}")
+                else:
+                    st.write("Failed to retrieve specific earnings data.")
+            else:
+                st.write(earnings_data)
             
             # Display stock price
             stock_data = yf.Ticker(ticker).info
