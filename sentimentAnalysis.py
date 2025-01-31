@@ -57,6 +57,26 @@ def validate_sentiment(sentiment_score, stock_performance):
     else:
         return "Sentiment aligns with stock performance."
 
+def get_earnings_data(ticker, api_key):
+    api_url = f"https://seeking-alpha.p.rapidapi.com/symbols/get-estimates"
+    headers = {
+        'x-rapidapi-host': "seeking-alpha.p.rapidapi.com",
+        'x-rapidapi-key': api_key
+    }
+    params = {
+        "symbol": ticker,
+        "data_type": "eps",
+        "period_type": "quarterly"
+    }
+    
+    response = requests.get(api_url, headers=headers, params=params)
+    
+    if response.status_code == 200:
+        earnings_data = response.json()
+        return earnings_data
+    else:
+        return "Failed to retrieve earnings data."
+
 # Streamlit app
 st.title("Earnings Call Sentiment Analysis")
 LOGO_URL="Tesla-Logo.png"
@@ -73,6 +93,7 @@ with col1:
         # Predefined values
         url = "https://wallstreetwaves.com/tesla-tsla-q4-2024-earnings-call-highlights-and-insights/"
         ticker = "TSLA"
+        api_key="0b7ddfd1d5msh644b6045b584129p1455edjsn2c8bbec1be38"
         
         # Scrape transcript
         transcript = scrape_transcript(url)
