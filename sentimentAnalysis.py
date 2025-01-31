@@ -89,103 +89,96 @@ st.title("Earnings Call Sentiment Analysis")
 LOGO_URL="Tesla-Logo.png"
 st.image(LOGO_URL, width=200)
 
-# Display the logo as a button
-col1, col2 = st.columns([2, 1])
-with col1:
-    st.write("")
-    st.markdown("<h2 style='color: green;'>Company Logo and Dashboard</h2>", unsafe_allow_html=True)
+# Display the logo and dashboard
+st.markdown("<h2 style='color: green;'>Company Logo and Dashboard</h2>", unsafe_allow_html=True)
+
+if st.button("View Company Dashboard"):
+    # Predefined values
+    url = "https://wallstreetwaves.com/tesla-tsla-q4-2024-earnings-call-highlights-and-insights/"
+    ticker = "TSLA"
+    api_key="2K9GC7BCAV2V7RX8"
     
-    if st.button("View Company Dashboard"):
-        # Predefined values
-        url = "https://wallstreetwaves.com/tesla-tsla-q4-2024-earnings-call-highlights-and-insights/"
-        ticker = "TSLA"
-        api_key="2K9GC7BCAV2V7RX8"
+    # Scrape transcript
+    transcript = scrape_transcript(url)
+    
+    if not transcript:
+        st.error("Unable to extract transcript from the provided URL. Please check the URL and try again.")
+    else:
+        # Display a sample of the scraped text
+        st.subheader("Sample of Scraped Text")
+        st.write(transcript[:500] + "...")  # Display first 500 characters
         
-        # Scrape transcript
-        transcript = scrape_transcript(url)
+        # Perform sentiment analysis
+        sentiments = analyze_sentiment(transcript)
         
-        if not transcript:
-            st.error("Unable to extract transcript from the provided URL. Please check the URL and try again.")
-        else:
-            # Display a sample of the scraped text
-            st.subheader("Sample of Scraped Text")
-            st.write(transcript[:500] + "...")  # Display first 500 characters
-            
-            # Perform sentiment analysis
-            sentiments = analyze_sentiment(transcript)
-            
-            # Calculate overall sentiment
-            overall_sentiment = pd.DataFrame(sentiments).mean()
-            
-            # Display results
-            st.subheader("Overall Sentiment")
-            st.write(f"Positive: {overall_sentiment['pos']:.2f}")
-            st.write(f"Neutral: {overall_sentiment['neu']:.2f}")
-            st.write(f"Negative: {overall_sentiment['neg']:.2f}")
-            st.write(f"Compound: {overall_sentiment['compound']:.2f}")
-            
-            # Get stock performance
-            stock_performance = get_stock_performance(ticker)
-            
-            # Validate sentiment
-            stock_discrepancy, volume_discrepancy = validate_sentiment(overall_sentiment['compound'], stock_performance)
-            
-            st.subheader("Sentiment Validation")
-            st.write(f"Stock Price: {stock_discrepancy}")
-            st.write(f"Trading Volume: {volume_discrepancy}")
-            
-            # Visualize sentiment, stock price, and trading volume
-            fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 15))
-            ax1.hist([s['compound'] for s in sentiments], bins=20)
-            ax1.set_xlabel("Sentiment Score")
-            ax1.set_ylabel("Frequency")
-            ax1.set_title("Distribution of Sentiment Scores")
-            
-            ax2.plot(stock_performance.index, stock_performance['Close'].values)
-            ax2.set_xlabel("Date")
-            ax2.set_ylabel("Stock Price")
-            ax2.set_title(f"{ticker} Stock Price")
-            
-            ax3.plot(stock_performance.index, stock_performance['Volume'].values)
-            ax3.set_xlabel("Date")
-            ax3.set_ylabel("Trading Volume")
-            ax3.set_title(f"{ticker} Trading Volume")
-            
-            st.pyplot(fig)
-            
-            # Display most positive and negative sentences
-            df_sentiments = pd.DataFrame(sentiments)
-            df_sentiments['sentence'] = nltk.sent_tokenize(transcript)
-            
-            st.subheader("Most Positive Sentences")
-            st.table(df_sentiments.nlargest(5, 'compound')[['sentence', 'compound']])
-            
-            st.subheader("Most Negative Sentences")
-            st.table(df_sentiments.nsmallest(5, 'compound')[['sentence', 'compound']])
-            
-            # Display dashboard
-            st.subheader("Company Dashboard")
-            
-            # Display earnings
-            earnings_data = get_earnings_data_alpha_vantage(ticker, api_key)
-            if isinstance(earnings_data, dict):
-                st.write("Earnings Data:")
-                if 'annualEarnings' in earnings_data:
-                    for year, data in earnings_data['annualEarnings'].items():
-                        st.write(f"Year: {year}, EPS: {data['fiscalEps']}")
-                else:
-                    st.write("Failed to retrieve specific earnings data.")
+        # Calculate overall sentiment
+        overall_sentiment = pd.DataFrame(sentiments).mean()
+        
+        # Display results
+        st.subheader("Overall Sentiment")
+        st.write(f"Positive: {overall_sentiment['pos']:.2f}")
+        st.write(f"Neutral: {overall_sentiment['neu']:.2f}")
+        st.write(f"Negative: {overall_sentiment['neg']:.2f}")
+        st.write(f"Compound: {overall_sentiment['compound']:.2f}")
+        
+        # Get stock performance
+        stock_performance = get_stock_performance(ticker)
+        
+        # Validate sentiment
+        stock_discrepancy, volume_discrepancy = validate_sentiment(overall_sentiment['compound'], stock_performance)
+        
+        st.subheader("Sentiment Validation")
+        st.write(f"Stock Price: {stock_discrepancy}")
+        st.write(f"Trading Volume: {volume_discrepancy}")
+        
+        # Visualize sentiment, stock price, and trading volume
+        fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 15))
+        ax1.hist([s['compound'] for s in sentiments], bins=20)
+        ax1.set_xlabel("Sentiment Score")
+        ax1.set_ylabel("Frequency")
+        ax1.set_title("Distribution of Sentiment Scores")
+        
+        ax2.plot(stock_performance.index, stock_performance['Close'].values)
+        ax2.set_xlabel("Date")
+        ax2.set_ylabel("Stock Price")
+        ax2.set_title(f"{ticker} Stock Price")
+        
+        ax3.plot(stock_performance.index, stock_performance['Volume'].values)
+        ax3.set_xlabel("Date")
+        ax3.set_ylabel("Trading Volume")
+        ax3.set_title(f"{ticker} Trading Volume")
+        
+        st.pyplot(fig)
+        
+        # Display most positive and negative sentences
+        df_sentiments = pd.DataFrame(sentiments)
+        df_sentiments['sentence'] = nltk.sent_tokenize(transcript)
+        
+        st.subheader("Most Positive Sentences")
+        st.table(df_sentiments.nlargest(5, 'compound')[['sentence', 'compound']])
+        
+        st.subheader("Most Negative Sentences")
+        st.table(df_sentiments.nsmallest(5, 'compound')[['sentence', 'compound']])
+        
+        # Display dashboard
+        st.subheader("Company Dashboard")
+        
+        # Display earnings
+        earnings_data = get_earnings_data(ticker, api_key)
+        if isinstance(earnings_data, dict):
+            st.write("Earnings Data:")
+            if 'annualEarnings' in earnings_data:
+                for year, data in earnings_data['annualEarnings'].items():
+                    st.write(f"Year: {year}, EPS: {data['fiscalEps']}")
             else:
-                st.write(earnings_data)
-                
-            # Display stock price
-            stock_data = yf.Ticker(ticker).info
-            stock_price = stock_data['currentPrice']
-            st.write(f"Stock Price: {stock_price}")
+                st.write("Failed to retrieve specific earnings data.")
+        else:
+            st.write(earnings_data)
             
-            # Display sentiment analysis
-            st.write(f"Overall Sentiment: {overall_sentiment['compound']:.2f}")
-    
-with col2:
-    # Sidebar content here
-    st.write
+        # Display stock price
+        stock_data = yf.Ticker(ticker).info
+        stock_price = stock_data['currentPrice']
+        st.write(f"Stock Price: {stock_price}")
+        
+        # Display sentiment analysis
+        st.write(f"Overall Sentiment: {overall_sentiment['compound']:.2f}")
