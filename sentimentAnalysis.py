@@ -208,7 +208,7 @@ if st.button("Sentiment Validation"):
         st.write(f"Overall Sentiment: {overall_sentiment['compound']:.2f}")
 
         # Calculate correlation
-        earnings_call_date = "2024-01-24"  # Replace with actual earnings call date
+        earnings_call_date = "2025-01-30"
         price_correlation, volume_correlation, price_change, volume_change = calculate_correlation(
             overall_sentiment['compound'], 
             stock_performance, 
